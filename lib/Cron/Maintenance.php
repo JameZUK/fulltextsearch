@@ -1,7 +1,3 @@
-<?php
-declare(strict_types=1);
-
-
 /**
  * FullTextSearch - Full text search framework for Nextcloud
  *
@@ -31,44 +27,46 @@ declare(strict_types=1);
 namespace OCA\FullTextSearch\Cron;
 
 
-use OC\BackgroundJob\TimedJob;
 use OCA\FullTextSearch\Service\ConfigService;
 use OCA\FullTextSearch\Service\MigrationService;
+use OCP\BackgroundJob\TimedJob;
+use OCP\AppFramework\Utility\ITimeFactory;
 
 
 class Maintenance extends TimedJob {
 
 
-	/** @var MigrationService */
-	private $migrationService;
+        /** @var MigrationService */
+        private $migrationService;
 
-	/** @var ConfigService */
-	private $configService;
-
-
-	/**
-	 *
-	 */
-	public function __construct(MigrationService $migrationService, ConfigService $configService) {
-		$this->setInterval(3600);
-
-		$this->migrationService = $migrationService;
-		$this->configService = $configService;
-	}
+        /** @var ConfigService */
+        private $configService;
 
 
-	/**
-	 * @param mixed $argument
-	 *
-	 * @throws \OCP\DB\Exception
-	 */
-	protected function run($argument) {
-		$size = $this->configService->getAppValue('size_migration_24');
-		if ($size === '') {
-			$size = 10000;
-		}
+        /**
+         *
+         */
+        public function __construct(ITimeFactory $time, MigrationService $migrationService, ConfigService $configService) {
+                parent::__construct($time);
+                $this->migrationService = $migrationService;
+                $this->configService = $configService;
 
-		$this->migrationService->migrate24Chunk((int)$size);
-	}
+                $this->setInterval(3600);
+        }
+
+
+        /**
+         * @param mixed $argument
+         *
+         * @throws \OCP\DB\Exception
+         */
+        protected function run($argument) {
+                $size = $this->configService->getAppValue('size_migration_24');
+                if ($size === '') {
+                        $size = 10000;
+                }
+
+                $this->migrationService->migrate24Chunk((int)$size);
+        }
 
 }
